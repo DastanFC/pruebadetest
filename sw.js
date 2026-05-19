@@ -9,6 +9,7 @@ self.addEventListener('push', function(evento) {
   
   evento.waitUntil(
     self.registration.showNotification(datos.title || '🔔 Recomendador', opciones)
+//                                                               
   );
 });
 
