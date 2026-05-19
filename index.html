@@ -3,62 +3,31 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Test Notificaciones</title>
-  <style>
-    body { font-family: Arial; padding: 20px; max-width: 500px; margin: 0 auto; }
-    button { padding: 15px; font-size: 18px; margin: 10px 0; width: 100%; }
-    .verde { background: #d1fae5; color: #065f46; padding: 15px; border-radius: 10px; margin: 10px 0; }
-    .rojo { background: #fee2e2; color: #991b1b; padding: 15px; border-radius: 10px; margin: 10px 0; }
-    .azul { background: #dbeafe; color: #1e40af; padding: 15px; border-radius: 10px; margin: 10px 0; }
-    h1 { text-align: center; }
-  </style>
+  <title>Test Ultra Simple</title>
 </head>
 <body>
-  <h1>🔔 Test Notificaciones</h1>
-
-  <div id="estado" class="azul">⏳ Cargando...</div>
-
-  <button id="botonProbar" style="display:none;">📢 Enviar notificación de prueba</button>
+  <h1>🔔 Test</h1>
+  <button id="btn">Activar y Probar</button>
+  <p id="estado">Pulsa el botón</p>
 
   <script>
-    async function iniciar() {
-      const estadoDiv = document.getElementById('estado');
+    const btn = document.getElementById('btn');
+    const estado = document.getElementById('estado');
 
-      if (!('Notification' in window)) {
-        estadoDiv.className = 'rojo';
-        estadoDiv.innerHTML = '❌ Notificaciones no soportadas';
-        return;
-      }
-
-      if (Notification.permission === 'granted') {
-        estadoDiv.className = 'verde';
-        estadoDiv.innerHTML = '✅ Notificaciones activadas. Pulsa el botón.';
-        document.getElementById('botonProbar').style.display = 'block';
-      } else if (Notification.permission === 'denied') {
-        estadoDiv.className = 'rojo';
-        estadoDiv.innerHTML = '❌ Permiso denegado. Actívalo en Configuración.';
+    btn.onclick = async () => {
+      estado.innerHTML = 'Solicitando permiso...';
+      
+      const permiso = await Notification.requestPermission();
+      
+      if (permiso === 'granted') {
+        estado.innerHTML = '✅ Permiso concedido. Enviando notificación...';
+        new Notification('¡Funciona! 📱', {
+          body: 'Esta es tu notificación de prueba.'
+        });
       } else {
-        const permiso = await Notification.requestPermission();
-        if (permiso === 'granted') {
-          estadoDiv.className = 'verde';
-          estadoDiv.innerHTML = '✅ Activado. Pulsa el botón.';
-          document.getElementById('botonProbar').style.display = 'block';
-        } else {
-          estadoDiv.className = 'rojo';
-          estadoDiv.innerHTML = '❌ Permiso denegado';
-        }
+        estado.innerHTML = '❌ Permiso denegado';
       }
-    }
-
-    document.getElementById('botonProbar').onclick = () => {
-      // Notificación SIN icono (más fiable)
-      new Notification('📱 ¡Funciona!', {
-        body: 'Si ves esto, las notificaciones funcionan correctamente.'
-      });
-      document.getElementById('estado').innerHTML = '✅ Notificación enviada. ¿La ves?';
     };
-
-    iniciar();
   </script>
 </body>
 </html>
