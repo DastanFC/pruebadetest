@@ -23,7 +23,7 @@
   <button id="botonProbar" style="display:none;">📢 Enviar notificación de prueba</button>
 
   <script>
-    // ⚠️ CAMBIA ESTA LÍNEA con tu clave pública del paso 3 ⚠️
+    // ⚠️ TU CLAVE PÚBLICA VAPID ⚠️
     const VAPID_PUBLIC_KEY = 'BI6nEbaGtDeDdJS87Jwvxr9S0ofPYN5fb45TWAI1PfaeHYh6FvOucJKiKDFED7pzjmVjROcJ0Rvkg9iv3xC_SKw';
 
     let trabajador = null;
@@ -47,7 +47,8 @@
       estadoDiv.innerHTML = '✅ Compatible. Registrando...';
 
       try {
-        trabajador = await navigator.serviceWorker.register('/sw.js');
+        // RUTA CORREGIDA para que encuentre sw.js
+        trabajador = await navigator.serviceWorker.register('/pruebadetest/sw.js');
         
         const permiso = Notification.permission;
         
@@ -81,6 +82,7 @@
         return suscripcion;
       } catch (err) {
         console.error('Error al suscribir:', err);
+        document.getElementById('estado').innerHTML = '❌ Error al suscribir: ' + err.message;
       }
     }
 
@@ -88,7 +90,7 @@
       if (Notification.permission === 'granted') {
         new Notification('📱 ¡Funciona!', {
           body: 'Si ves esto, las notificaciones funcionan correctamente.',
-          icon: '/icon-192.png'
+          icon: '/pruebadetest/icon-192.png'
         });
         document.getElementById('estado').className = 'verde';
         document.getElementById('estado').innerHTML = '✅ Notificación enviada. ¿La has visto?';
