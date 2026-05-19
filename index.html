@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Notificaciones</title>
+  <style>
+    body { font-family: Arial; padding: 20px; max-width: 500px; margin: 0 auto; }
+    button { padding: 15px; font-size: 18px; margin: 10px 0; width: 100%; }
+    .verde { background: #d1fae5; color: #065f46; padding: 15px; border-radius: 10px; margin: 10px 0; }
+    .rojo { background: #fee2e2; color: #991b1b; padding: 15px; border-radius: 10px; margin: 10px 0; }
+    .azul { background: #dbeafe; color: #1e40af; padding: 15px; border-radius: 10px; margin: 10px 0; }
+    h1 { text-align: center; }
+  </style>
+</head>
+<body>
+  <h1>🔔 Test Notificaciones</h1>
+  <p>Prueba si tu móvil puede recibir notificaciones.</p>
+
+  <div id="estado" class="azul">⏳ Cargando...</div>
+
+  <button id="botonActivar" style="display:none;">🔔 Activar notificaciones</button>
+  <button id="botonProbar" style="display:none;">📢 Enviar notificación de prueba</button>
+
+  <script>
+    // ⚠️ CAMBIA ESTA LÍNEA con tu clave pública del paso 3 ⚠️
+    const VAPID_PUBLIC_KEY = 'BI6nEbaGtDeDdJS87Jwvxr9S0ofPYN5fb45TWAI1PfaeHYh6FvOucJKiKDFED7pzjmVjROcJ0Rvkg9iv3xC_SKw';
+
+    let trabajador = null;
+
+    async function iniciar() {
+      const estadoDiv = document.getElementById('estado');
+
+      if (!('serviceWorker' in navigator)) {
+        estadoDiv.className = 'rojo';
+        estadoDiv.innerHTML = '❌ Tu navegador no soporta Service Worker';
+        return;
+      }
+
+      if (!('PushManager' in window)) {
+        estadoDiv.className = 'rojo';
+        estadoDiv.innerHTML = '❌ Notificaciones NO soportadas. En iPhone NO funciona. Usa Android o PC.';
+        return;
+      }
+
+      estadoDiv.className = 'azul';
+      estadoDiv.innerHTML = '✅ Compatible. Registrando...';
+
+      try {
+        trabajador = await navigator.serviceWorker.register('/sw.js');
+        
+        const permiso = Notification.permission;
+        
+        if (permiso === 'granted') {
+          estadoDiv.className = 'verde';
+          estadoDiv.innerHTML = '✅ Notificaciones activadas correctamente';
+          document.getElementById('botonProbar').style.display = 'block';
+          await suscribir();
+        } else if (permiso === 'denied') {
+          estadoDiv.className = 'rojo';
+          estadoDiv.innerHTML = '❌ Bloqueaste las notificaciones. Ve a Configuración > Notificaciones y actívalas.';
+        } else {
+          estadoDiv.className = 'azul';
+          estadoDiv.innerHTML = '🔔 Pulsa el botón para activar notificaciones';
+          document.getElementById('botonActivar').style.display = 'block';
+        }
+
+      } catch (err) {
+        estadoDiv.className = 'rojo';
+        estadoDiv.innerHTML = '❌ Error: ' + err.message;
+      }
+    }
+
+    async function suscribir() {
+      try {
+        const suscripcion = await trabajador.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: convertirClave(VAPID_PUBLIC_KEY)
+        });
+        console.log('✅ Suscrito', suscripcion);
+        return suscripcion;
+      } catch (err) {
+        console.error('Error al suscribir:', err);
+      }
+    }
+
+    function enviarNotificacionPrueba() {
+      if (Notification.permission === 'granted') {
+        new Notification('📱 ¡Funciona!', {
+          body: 'Si ves esto, las notificaciones funcionan correctamente.',
+          icon: '/icon-192.png'
+        });
+        document.getElementById('estado').className = 'verde';
+        document.getElementById('estado').innerHTML = '✅ Notificación enviada. ¿La has visto?';
+      }
+    }
+
+    function convertirClave(base64String) {
+      const padding = '='.repeat((4 - base64String.length % 4) % 4);
+      const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+      const rawData = window.atob(base64);
+      const outputArray = new Uint8Array(rawData.length);
+      for (let i = 0; i < rawData.length; ++i) {
+        outputArray[i] = rawData.charCodeAt(i);
+      }
+      return outputArray;
+    }
+
+    document.getElementById('botonActivar').onclick = async () => {
+      const permiso = await Notification.requestPermission();
+      if (permiso === 'granted') {
+        await suscribir();
+        document.getElementById('estado').className = 'verde';
+        document.getElementById('estado').innerHTML = '✅ Activado. Ahora prueba el otro botón.';
+        document.getElementById('botonProbar').style.display = 'block';
+        document.getElementById('botonActivar').style.display = 'none';
+      }
+    };
+
+    document.getElementById('botonProbar').onclick = enviarNotificacionPrueba;
+
+    iniciar();
+  </script>
+</body>
+</html>
